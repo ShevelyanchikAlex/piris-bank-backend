@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/piris_bank_db?useUnicode=true&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: rtyfghvbn
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+
+logging:
+  level:
+    org.springframework.web: ERROR
+    com.bsuir.piris: DEBUG
+    root: INFO
