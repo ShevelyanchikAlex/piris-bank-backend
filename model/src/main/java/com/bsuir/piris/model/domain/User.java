@@ -28,8 +28,8 @@ public class User {
     @Column(name = "birthday")
     private Date birthday;
 
-    @Column(name = "sex")
-    private Character sex;
+    @Column(name = "gender")
+    private Character gender;
 
     @Column(name = "passport_series")
     private String passportSeries;
@@ -55,9 +55,6 @@ public class User {
 
     @Column(name = "address")
     private String address;
-
-    @Column(name = "home_number")
-    private String homeNumber;
 
     @Column(name = "mobile_number")
     private String mobileNumber;
@@ -85,4 +82,7 @@ public class User {
 
     @Column(name = "monthly_income")
     private BigDecimal monthlyIncome;
+
+    @Column(name = "is_reservist")
+    private Boolean isReservist;
 }

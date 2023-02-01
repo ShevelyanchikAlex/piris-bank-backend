@@ -20,7 +20,7 @@ public class UserDto {
     private String surname;
     private String fathersName;
     private Date birthday;
-    private Character sex;
+    private Character gender;
     private String passportSeries;
     private String passportNumber;
     private String passportId;
@@ -29,7 +29,6 @@ public class UserDto {
     private String placeOfBirth;
     private City city;
     private String address;
-    private String homeNumber;
     private String mobileNumber;
     private String email;
     private String addressOfResidence;
@@ -38,4 +37,5 @@ public class UserDto {
     private Disability disability;
     private Boolean isPensioner;
     private BigDecimal monthlyIncome;
+    private Boolean isReservist;
 }
