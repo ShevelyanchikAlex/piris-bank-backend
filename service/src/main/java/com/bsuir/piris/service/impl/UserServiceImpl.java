@@ -1,9 +1,9 @@
 package com.bsuir.piris.service.impl;
 
-import com.bsuir.piris.model.domain.User;
+import com.bsuir.piris.model.domain.*;
 import com.bsuir.piris.model.dto.UserDto;
 import com.bsuir.piris.model.mapper.UserMapper;
-import com.bsuir.piris.persistence.UserRepository;
+import com.bsuir.piris.persistence.*;
 import com.bsuir.piris.service.UserService;
 import com.bsuir.piris.service.exception.ServiceException;
 import com.bsuir.piris.service.validator.impl.IdValidator;
@@ -22,8 +22,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private static final String USER_NOT_FOUND_ERROR = "user.not.found";
+    private static final String CITY_NOT_FOUND_ERROR = "city.not.found";
+    private static final String FAMILY_STATUS_NOT_FOUND_ERROR = "family_status.not.found";
+    private static final String NATIONALITY_NOT_FOUND_ERROR = "nationality.not.found";
+    private static final String DISABILITY_NOT_FOUND_ERROR = "disability.not.found";
+
 
     private final UserRepository userRepository;
+    private final CityRepository cityRepository;
+    private final FamilyStatusRepository familyStatusRepository;
+    private final NationalityRepository nationalityRepository;
+    private final DisabilityRepository disabilityRepository;
     private final UserMapper userMapper;
     private final UserValidator userValidator;
     private final IdValidator idValidator;
@@ -32,7 +41,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto save(UserDto userDto) {
         userValidator.validate(userDto);
+        City city = cityRepository.findById(userDto.getCity().getId())
+                .orElseThrow(() -> new ServiceException(CITY_NOT_FOUND_ERROR));
+        FamilyStatus familyStatus = familyStatusRepository.findById(userDto.getFamilyStatus().getId())
+                .orElseThrow(() -> new ServiceException(FAMILY_STATUS_NOT_FOUND_ERROR));
+        Nationality nationality = nationalityRepository.findById(userDto.getNationality().getId())
+                .orElseThrow(() -> new ServiceException(NATIONALITY_NOT_FOUND_ERROR));
+        Disability disability = disabilityRepository.findById(userDto.getDisability().getId())
+                .orElseThrow(() -> new ServiceException(DISABILITY_NOT_FOUND_ERROR));
         User entity = userMapper.toEntity(userDto);
+        entity.setCity(city);
+        entity.setFamilyStatus(familyStatus);
+        entity.setNationality(nationality);
+        entity.setDisability(disability);
         User savedUser = userRepository.save(entity);
         return userMapper.toDto(savedUser);
     }
