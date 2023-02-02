@@ -11,29 +11,89 @@ import java.util.function.Predicate;
 
 @Component
 public class UserValidator implements Validator<UserDto> {
-    private static final String USER_VALIDATE_ERROR = "user.validate.error";
+    private static final String USER_EMAIL_VALIDATE_ERROR = "user.email.validate.error";
+    private static final String USER_NAME_VALIDATE_ERROR = "user.name.validate.error";
+    private static final String USER_SURNAME_VALIDATE_ERROR = "user.surname.validate.error";
+    private static final String USER_FATHERS_NAME_VALIDATE_ERROR = "user.fathersName.validate.error";
+    private static final String USER_GENDER_VALIDATE_ERROR = "user.gender.validate.error";
+    private static final String USER_PASSPORT_SERIES_VALIDATE_ERROR = "user.passport.series.validate.error";
+    private static final String USER_PASSPORT_NUMBER_VALIDATE_ERROR = "user.passport.number.validate.error";
+    private static final String USER_PASSPORT_ID_VALIDATE_ERROR = "user.passport.id.validate.error";
+    private static final String USER_MOBILE_NUMBER_VALIDATE_ERROR = "user.mobile.number.validate.error";
 
     @Override
     public void validate(UserDto userDto) {
-        if (Objects.isNull(userDto) || !(validateName(userDto.getName()) &&
-                validateEmail(userDto.getEmail()))) {
-            throw new ServiceException(USER_VALIDATE_ERROR);
-        }
+        validateEmail(userDto.getEmail());
+        validateName(userDto.getName());
+        validateSurname(userDto.getSurname());
+        validateFathersName(userDto.getFathersName());
+        validateGender(userDto.getGender());
+        validatePassportSeries(userDto.getPassportSeries());
+        validatePassportNumber(userDto.getPassportNumber());
+        validatePassportId(userDto.getPassportId());
+        validateMobileNumber(userDto.getMobileNumber());
     }
 
-    public boolean validateEmail(String email) {
-        if (Objects.isNull(email)) {
-            return false;
-        }
+    public void validateEmail(String email) {
         Predicate<String> userEmailPredicate = str -> str.matches(ValidatorRegexPattern.EMAIL_REGEX_PATTERN);
-        return userEmailPredicate.test(email);
+        if (Objects.isNull(email) || !userEmailPredicate.test(email)) {
+            throw new ServiceException(USER_EMAIL_VALIDATE_ERROR);
+        }
     }
 
-    private boolean validateName(String name) {
-        if (Objects.isNull(name)) {
-            return false;
-        }
+    private void validateName(String name) {
         Predicate<String> userNamePredicate = str -> str.matches(ValidatorRegexPattern.USER_NAME_REGEX_PATTERN);
-        return userNamePredicate.test(name);
+        if (Objects.isNull(name) || !userNamePredicate.test(name)) {
+            throw new ServiceException(USER_NAME_VALIDATE_ERROR);
+        }
+    }
+
+    private void validateSurname(String surname) {
+        Predicate<String> userSurnamePredicate = str -> str.matches(ValidatorRegexPattern.USER_NAME_REGEX_PATTERN);
+        if (Objects.isNull(surname) || !userSurnamePredicate.test(surname)) {
+            throw new ServiceException(USER_SURNAME_VALIDATE_ERROR);
+        }
+    }
+
+    private void validateFathersName(String fathersName) {
+        Predicate<String> userFathersNamePredicate = str -> str.matches(ValidatorRegexPattern.USER_NAME_REGEX_PATTERN);
+        if (Objects.isNull(fathersName) || !userFathersNamePredicate.test(fathersName)) {
+            throw new ServiceException(USER_FATHERS_NAME_VALIDATE_ERROR);
+        }
+    }
+
+    private void validateGender(Character gender) {
+        Predicate<Character> userGenderPredicate = ch -> ch.equals('M') || ch.equals('F');
+        if (Objects.isNull(gender) || !userGenderPredicate.test(gender)) {
+            throw new ServiceException(USER_GENDER_VALIDATE_ERROR);
+        }
+    }
+
+    private void validatePassportSeries(String passportSeries) {
+        Predicate<String> userPassportSeriesPredicate = str -> str.matches(ValidatorRegexPattern.PASSPORT_SERIES_REGEX_PATTERN);
+        if (Objects.isNull(passportSeries) || !userPassportSeriesPredicate.test(passportSeries)) {
+            throw new ServiceException(USER_PASSPORT_SERIES_VALIDATE_ERROR);
+        }
+    }
+
+    private void validatePassportNumber(String passportNumber) {
+        Predicate<String> userPassportNumberPredicate = str -> str.matches(ValidatorRegexPattern.PASSPORT_NUMBER_REGEX_PATTERN);
+        if (Objects.isNull(passportNumber) || !userPassportNumberPredicate.test(passportNumber)) {
+            throw new ServiceException(USER_PASSPORT_NUMBER_VALIDATE_ERROR);
+        }
+    }
+
+    private void validatePassportId(String passportId) {
+        Predicate<String> userPassportIdPredicate = str -> str.matches(ValidatorRegexPattern.PASSPORT_ID_REGEX_PATTERN);
+        if (Objects.isNull(passportId) || !userPassportIdPredicate.test(passportId)) {
+            throw new ServiceException(USER_PASSPORT_ID_VALIDATE_ERROR);
+        }
+    }
+
+    private void validateMobileNumber(String mobileNumber) {
+        Predicate<String> userMobileNumberPredicate = str -> str.matches(ValidatorRegexPattern.MOBILE_NUMBER_REGEX_PATTERN);
+        if (Objects.isNull(mobileNumber) || !userMobileNumberPredicate.test(mobileNumber)) {
+            throw new ServiceException(USER_MOBILE_NUMBER_VALIDATE_ERROR);
+        }
     }
 }
