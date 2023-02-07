@@ -6,6 +6,8 @@ import com.bsuir.piris.service.validator.Validator;
 import com.bsuir.piris.service.validator.ValidatorRegexPattern;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -20,6 +22,8 @@ public class UserValidator implements Validator<UserDto> {
     private static final String USER_PASSPORT_NUMBER_VALIDATE_ERROR = "user.passport.number.validate.error";
     private static final String USER_PASSPORT_ID_VALIDATE_ERROR = "user.passport.id.validate.error";
     private static final String USER_MOBILE_NUMBER_VALIDATE_ERROR = "user.mobile.number.validate.error";
+    private static final String USER_DATE_VALIDATE_ERROR = "user.date.validate.error";
+    private static final String USER_MONTHLY_INCOME_VALIDATE_ERROR = "user.monthly.income.validate.error";
 
     @Override
     public void validate(UserDto userDto) {
@@ -32,6 +36,9 @@ public class UserValidator implements Validator<UserDto> {
         validatePassportNumber(userDto.getPassportNumber());
         validatePassportId(userDto.getPassportId());
         validateMobileNumber(userDto.getMobileNumber());
+        validateDate(userDto.getBirthday());
+        validateDate(userDto.getPassportIssuedDate());
+        validateMonthlyIncome(userDto.getMonthlyIncome());
     }
 
     public void validateEmail(String email) {
@@ -94,6 +101,20 @@ public class UserValidator implements Validator<UserDto> {
         Predicate<String> userMobileNumberPredicate = str -> str.matches(ValidatorRegexPattern.MOBILE_NUMBER_REGEX_PATTERN);
         if (Objects.isNull(mobileNumber) || !userMobileNumberPredicate.test(mobileNumber)) {
             throw new ServiceException(USER_MOBILE_NUMBER_VALIDATE_ERROR);
+        }
+    }
+
+    private void validateDate(LocalDate localDate) {
+        LocalDate currentDate = LocalDate.now();
+        LocalDate pastDate = LocalDate.parse("1900-01-01");
+        if (Objects.isNull(localDate) || localDate.isBefore(pastDate) || localDate.isAfter(currentDate)) {
+            throw new ServiceException(USER_DATE_VALIDATE_ERROR);
+        }
+    }
+
+    private void validateMonthlyIncome(BigDecimal monthlyIncome) {
+        if (monthlyIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ServiceException(USER_MONTHLY_INCOME_VALIDATE_ERROR);
         }
     }
 }

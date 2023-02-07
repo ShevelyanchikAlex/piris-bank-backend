@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserTransferDto {
+public class UserPrepareDto {
     private City city;
     private FamilyStatus familyStatus;
     private Nationality nationality;

@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -26,7 +26,7 @@ public class User {
     private String fathersName;
 
     @Column(name = "birthday")
-    private Date birthday;
+    private LocalDate birthday;
 
     @Column(name = "gender")
     private Character gender;
@@ -44,7 +44,7 @@ public class User {
     private String passportIssued;
 
     @Column(name = "passport_issued_date")
-    private Date passportIssuedDate;
+    private LocalDate passportIssuedDate;
 
     @Column(name = "place_of_birth")
     private String placeOfBirth;
