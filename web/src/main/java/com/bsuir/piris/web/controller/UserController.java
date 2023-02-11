@@ -22,9 +22,9 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> findAll(@RequestParam(name = "pageIndex", defaultValue = "1") Integer pageIndex,
+    public List<UserDto> findAll(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                  @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        Page<UserDto> userPage = userService.findAll(PageRequest.of(pageIndex, size));
+        Page<UserDto> userPage = userService.findAll(PageRequest.of(page, size));
         return new ArrayList<>(userPage.getContent());
     }
 

@@ -29,6 +29,7 @@ public class UserDto {
     private String placeOfBirth;
     private City city;
     private String address;
+    private String phoneHomeNumber;
     private String mobileNumber;
     private String email;
     private String addressOfResidence;

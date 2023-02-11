@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserDto> findAll(Pageable pageable) {
-        List<UserDto> userDtoList = userRepository.findAll()
+        List<UserDto> userDtoList = userRepository.findAll(pageable)
                 .stream()
                 .map(userMapper::toDto)
                 .collect(Collectors.toList());

@@ -49,12 +49,15 @@ public class User {
     @Column(name = "place_of_birth")
     private String placeOfBirth;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "city_id", referencedColumnName = "id")
     private City city;
 
     @Column(name = "address")
     private String address;
+
+    @Column(name = "phone_home_number")
+    private String phoneHomeNumber;
 
     @Column(name = "mobile_number")
     private String mobileNumber;
@@ -65,15 +68,15 @@ public class User {
     @Column(name = "address_of_residence")
     private String addressOfResidence;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "family_status_id", referencedColumnName = "id")
     private FamilyStatus familyStatus;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "nationality_id", referencedColumnName = "id")
     private Nationality nationality;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "disability_id", referencedColumnName = "id")
     private Disability disability;
 
