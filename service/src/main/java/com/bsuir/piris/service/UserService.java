@@ -12,4 +12,8 @@ public interface UserService {
     Page<UserDto> findAll(Pageable pageable);
 
     Long getUsersCount();
+
+    UserDto update(UserDto userDto);
+
+    void deleteById(Long id);
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -19,17 +19,17 @@ public class UserDto {
     private String name;
     private String surname;
     private String fathersName;
-    private Date birthday;
-    private Character sex;
+    private LocalDate birthday;
+    private Character gender;
     private String passportSeries;
     private String passportNumber;
     private String passportId;
     private String passportIssued;
-    private Date passportIssuedDate;
+    private LocalDate passportIssuedDate;
     private String placeOfBirth;
     private City city;
     private String address;
-    private String homeNumber;
+    private String phoneHomeNumber;
     private String mobileNumber;
     private String email;
     private String addressOfResidence;
@@ -38,4 +38,5 @@ public class UserDto {
     private Disability disability;
     private Boolean isPensioner;
     private BigDecimal monthlyIncome;
+    private Boolean isReservist;
 }

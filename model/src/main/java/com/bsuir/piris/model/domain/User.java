@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -26,10 +26,10 @@ public class User {
     private String fathersName;
 
     @Column(name = "birthday")
-    private Date birthday;
+    private LocalDate birthday;
 
-    @Column(name = "sex")
-    private Character sex;
+    @Column(name = "gender")
+    private Character gender;
 
     @Column(name = "passport_series")
     private String passportSeries;
@@ -44,20 +44,20 @@ public class User {
     private String passportIssued;
 
     @Column(name = "passport_issued_date")
-    private Date passportIssuedDate;
+    private LocalDate passportIssuedDate;
 
     @Column(name = "place_of_birth")
     private String placeOfBirth;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "city_id", referencedColumnName = "id")
     private City city;
 
     @Column(name = "address")
     private String address;
 
-    @Column(name = "home_number")
-    private String homeNumber;
+    @Column(name = "phone_home_number")
+    private String phoneHomeNumber;
 
     @Column(name = "mobile_number")
     private String mobileNumber;
@@ -68,15 +68,15 @@ public class User {
     @Column(name = "address_of_residence")
     private String addressOfResidence;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "family_status_id", referencedColumnName = "id")
     private FamilyStatus familyStatus;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "nationality_id", referencedColumnName = "id")
     private Nationality nationality;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "disability_id", referencedColumnName = "id")
     private Disability disability;
 
@@ -85,4 +85,7 @@ public class User {
 
     @Column(name = "monthly_income")
     private BigDecimal monthlyIncome;
+
+    @Column(name = "is_reservist")
+    private Boolean isReservist;
 }

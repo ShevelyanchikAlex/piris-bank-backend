@@ -16,10 +16,15 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+    @PostMapping
+    public UserDto save(@RequestBody UserDto userDto) {
+        return userService.save(userDto);
+    }
+
     @GetMapping
-    public List<UserDto> findAll(@RequestParam(name = "pageIndex", defaultValue = "1") Integer pageIndex,
+    public List<UserDto> findAll(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                  @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        Page<UserDto> userPage = userService.findAll(PageRequest.of(pageIndex, size));
+        Page<UserDto> userPage = userService.findAll(PageRequest.of(page, size));
         return new ArrayList<>(userPage.getContent());
     }
 
@@ -28,8 +33,18 @@ public class UserController {
         return userService.findById(id);
     }
 
+    @PatchMapping
+    public UserDto update(@RequestBody UserDto userDto) {
+        return userService.update(userDto);
+    }
+
     @GetMapping("/count")
     public Long getUsersCount() {
         return userService.getUsersCount();
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteById(@PathVariable Long id) {
+        userService.deleteById(id);
     }
 }
