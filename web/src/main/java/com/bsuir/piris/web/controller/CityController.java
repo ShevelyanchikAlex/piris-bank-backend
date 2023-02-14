@@ -22,9 +22,9 @@ public class CityController {
     }
 
     @GetMapping
-    public List<CityDto> findAll(@RequestParam(name = "pageIndex", defaultValue = "1") Integer pageIndex,
+    public List<CityDto> findAll(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                  @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        Page<CityDto> cityPage = cityService.findAll(PageRequest.of(pageIndex, size));
+        Page<CityDto> cityPage = cityService.findAll(PageRequest.of(page, size));
         return new ArrayList<>(cityPage.getContent());
     }
 
