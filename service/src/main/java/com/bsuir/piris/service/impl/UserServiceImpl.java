@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private static final String FAMILY_STATUS_NOT_FOUND_ERROR = "family_status.not.found";
     private static final String NATIONALITY_NOT_FOUND_ERROR = "nationality.not.found";
     private static final String DISABILITY_NOT_FOUND_ERROR = "disability.not.found";
+    private static final String USER_HAS_DEPOSIT_ERROR = "user.has.deposit";
 
 
     private final UserRepository userRepository;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final FamilyStatusRepository familyStatusRepository;
     private final NationalityRepository nationalityRepository;
     private final DisabilityRepository disabilityRepository;
+    private final DepositRepository depositRepository;
     private final UserMapper userMapper;
     private final UserValidator userValidator;
     private final IdValidator idValidator;
@@ -96,8 +98,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteById(Long id) {
         idValidator.validate(id);
-        if (!userRepository.existsById(id)) {
-            throw new ServiceException(USER_NOT_FOUND_ERROR);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(USER_NOT_FOUND_ERROR));
+        if (Boolean.TRUE.equals(depositRepository.existsByUserAndIsOpenIsTrue(user))) {
+            throw new ServiceException(USER_HAS_DEPOSIT_ERROR);
         }
         userRepository.deleteById(id);
     }

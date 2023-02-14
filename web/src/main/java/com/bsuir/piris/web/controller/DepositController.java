@@ -18,7 +18,6 @@ public class DepositController {
 
     @PostMapping
     public DepositDto save(@RequestBody DepositDto depositDto) {
-        System.out.println(depositDto);
         return depositService.save(depositDto);
     }
 
@@ -32,6 +31,11 @@ public class DepositController {
     @GetMapping("/{id}")
     public DepositDto findById(@PathVariable Long id) {
         return depositService.findById(id);
+    }
+
+    @GetMapping("/count")
+    public Long getDepositsCount() {
+        return depositService.getDepositsCount();
     }
 
     @PutMapping("/close-deposit/{id}")

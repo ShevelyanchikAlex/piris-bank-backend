@@ -1,7 +1,6 @@
 package com.bsuir.piris.service.impl;
 
 import com.bsuir.piris.model.domain.*;
-import com.bsuir.piris.model.dto.AccountDto;
 import com.bsuir.piris.model.dto.DepositDto;
 import com.bsuir.piris.model.mapper.DepositMapper;
 import com.bsuir.piris.model.mapper.UserMapper;
@@ -25,6 +24,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,10 +33,11 @@ public class DepositServiceImpl implements DepositService {
     private static final String DEPOSIT_NOT_FOUND_ERROR = "deposit.not.found";
     private static final String IRREVOCABLE_DEPOSIT_CLOSED_ERROR = "irrevocable.deposit.cannot.closed";
     private static final String DEPOSIT_ALREADY_CLOSED_ERROR = "deposit.already.closed";
-
-    private static final BigDecimal PERCENT_SCALE_VALUE = BigDecimal.valueOf(10 * 100);
+    private static final String ACCOUNT_NOT_ERROR = "account.not.found";
+    private static final BigDecimal PERCENT_SCALE_VALUE = BigDecimal.valueOf(100);
     private static final BigDecimal MONTH_AMOUNT = BigDecimal.valueOf(12);
     private static final int END_VALUE = 9;
+    private static final int LIMIT_CONTRACT_NUMBER = 12;
     private static final int FIRST_DAY = 1;
 
     private final DepositRepository depositRepository;
@@ -50,12 +51,11 @@ public class DepositServiceImpl implements DepositService {
     @Transactional
     @Override
     public DepositDto save(DepositDto depositDto) {
-        Deposit deposit = depositMapper.toEntity(depositDto);
-        LocalDate startDate = depositDto.getStartDate();
-        LocalDate endDate = depositDto.getEndDate();
+        LocalDate startDate = imaginaryTimeService.findLastDate().getCurrentDate();
+        LocalDate endDate = startDate.plusMonths(depositDto.getContractTerm());
         depositDto.setStartDate(LocalDate.of(startDate.getYear(), startDate.getMonthValue(), FIRST_DAY));
         depositDto.setEndDate(LocalDate.of(endDate.getYear(), endDate.getMonthValue(), FIRST_DAY));
-        User user = userMapper.toEntity(depositDto.getUser());
+        depositDto.setContractNumber(createRandomNumber(LIMIT_CONTRACT_NUMBER));
 
         Account bankCashAccount = findBankCashAccount();
         bankCashAccount.setDebit(bankCashAccount.getDebit().add(depositDto.getSumAmount()));
@@ -64,12 +64,14 @@ public class DepositServiceImpl implements DepositService {
         Account bankFundAccount = findBankFundAccount();
         bankFundAccount.setCredit(bankFundAccount.getCredit().add(depositDto.getSumAmount()));
 
-        Account currentAccount = createCurrentAccount(depositDto.getSumAmount(), user);
-        Account percentAccount = createPercentAccount(user);
-
-        Account savedPercentAccount = accountRepository.save(percentAccount);
+        User user = userMapper.toEntity(depositDto.getUser());
+        Account currentAccount = createAccount(depositDto.getSumAmount(), user);
+        Account percentAccount = createAccount(BigDecimal.ZERO, user);
         Account savedCurrentAccount = accountRepository.save(currentAccount);
+        Account savedPercentAccount = accountRepository.save(percentAccount);
         accountRepository.saveAll(List.of(bankCashAccount, bankFundAccount));
+
+        Deposit deposit = depositMapper.toEntity(depositDto);
         deposit.setPercentAccount(savedPercentAccount);
         deposit.setCurrentAccount(savedCurrentAccount);
         deposit.setUser(user);
@@ -94,8 +96,8 @@ public class DepositServiceImpl implements DepositService {
     }
 
     @Override
-    public Page<AccountDto> findAllAccounts(Pageable pageable) {
-        return null;
+    public Long getDepositsCount() {
+        return depositRepository.count();
     }
 
     @Transactional
@@ -121,18 +123,24 @@ public class DepositServiceImpl implements DepositService {
             throw new ServiceException(DEPOSIT_ALREADY_CLOSED_ERROR);
         }
         BigDecimal depositSum = deposit.getSumAmount();
+        BigDecimal percentSum = deposit.getPercent();
+
         Account bankFundAccount = findBankFundAccount();
-        bankFundAccount.setDebit(bankFundAccount.getDebit().subtract(depositSum));
+        bankFundAccount.setDebit(bankFundAccount.getDebit().subtract(depositSum).subtract(percentSum));
 
         Account bankCashAccount = findBankCashAccount();
         bankCashAccount.setDebit(bankCashAccount.getDebit().add(depositSum));
         bankCashAccount.setCredit(bankCashAccount.getCredit().subtract(depositSum));
 
-        Account currentAccount = deposit.getCurrentAccount();
-        currentAccount.setCredit(currentAccount.getCredit().add(depositSum));
-        currentAccount.setDebit(currentAccount.getDebit().subtract(depositSum));
+        Account percentAccount = deposit.getPercentAccount();
+        percentAccount.setCredit(percentAccount.getCredit().add(percentSum));
+        percentAccount.setDebit(percentAccount.getDebit().subtract(percentSum));
 
-        accountRepository.saveAll(List.of(bankFundAccount, bankCashAccount, currentAccount));
+        Account currentAccount = deposit.getCurrentAccount();
+        currentAccount.setCredit(currentAccount.getCredit().add(percentSum));
+        currentAccount.setDebit(currentAccount.getDebit().subtract(percentSum));
+
+        accountRepository.saveAll(List.of(bankFundAccount, bankCashAccount, currentAccount, percentAccount));
         deposit.setIsOpen(false);
         depositRepository.save(deposit);
     }
@@ -165,9 +173,9 @@ public class DepositServiceImpl implements DepositService {
     private Deposit calculatePercents(Deposit deposit, LocalDate previousDate, LocalDate currentDate,
                                       Account bankFundAccount, Account bankCashAccount) {
         BigDecimal monthPercents = deposit.getPercent()
-                .divide(PERCENT_SCALE_VALUE, RoundingMode.DOWN)
                 .multiply(deposit.getSumAmount())
-                .divide(MONTH_AMOUNT, RoundingMode.HALF_EVEN);
+                .divide(MONTH_AMOUNT, RoundingMode.HALF_EVEN)
+                .divide(PERCENT_SCALE_VALUE, RoundingMode.DOWN);
 
         LocalDate startDate = previousDate.isAfter(deposit.getStartDate())
                 ? previousDate
@@ -188,6 +196,7 @@ public class DepositServiceImpl implements DepositService {
 
         bankCashAccount.setDebit(bankCashAccount.getDebit().add(percentMoney));
         bankCashAccount.setCredit(bankCashAccount.getCredit().subtract(percentMoney));
+        accountRepository.saveAll(List.of(percentAccount, bankCashAccount));
 
         if (deposit.getEndDate().isBefore(currentDate) || deposit.getEndDate().isEqual(currentDate)) {
             closeDeposit(deposit, bankCashAccount, bankFundAccount);
@@ -199,53 +208,44 @@ public class DepositServiceImpl implements DepositService {
         BigDecimal depositSum = deposit.getSumAmount();
         bankFundAccount.setDebit(bankFundAccount.getDebit().subtract(depositSum));
 
+        Account percentAccount = deposit.getPercentAccount();
         Account currentAccount = deposit.getCurrentAccount();
-        currentAccount.setCredit(currentAccount.getCredit().add(depositSum));
-        currentAccount.setDebit(currentAccount.getDebit().subtract(depositSum));
+        currentAccount.setCredit(currentAccount.getCredit().add(percentAccount.getCredit()));
+        currentAccount.setDebit(currentAccount.getDebit().subtract(percentAccount.getCredit()));
 
         bankCashAccount.setDebit(bankCashAccount.getDebit().add(depositSum));
         bankCashAccount.setCredit(bankCashAccount.getCredit().subtract(depositSum));
-
         deposit.setIsOpen(false);
     }
 
-    private Account createPercentAccount(User user) {
-        Account account = new Account();
-        account.setDebit(BigDecimal.ZERO);
-        account.setCredit(BigDecimal.ZERO);
-        account.setAccountActivity(AccountActivity.PASSIVE);
-        account.setAccountCode(AccountCode.PERSONAL);
-        account.setNumber(AccountCode.PERSONAL.getCode().concat(createRandomNumber()));
-        account.setClientData(user.getName().concat(" ").concat(user.getFathersName())
-                .concat(" ").concat(user.getSurname()));
-        return account;
-    }
-
-    private Account createCurrentAccount(BigDecimal amount, User user) {
+    private Account createAccount(BigDecimal amount, User user) {
         Account account = new Account();
         account.setDebit(BigDecimal.ZERO.subtract(amount));
         account.setCredit(amount);
         account.setAccountActivity(AccountActivity.PASSIVE);
         account.setAccountCode(AccountCode.PERSONAL);
-        account.setNumber(AccountCode.PERSONAL.getCode().concat(createRandomNumber()));
+        account.setNumber(AccountCode.PERSONAL.getCode().concat(createRandomNumber(END_VALUE)));
         account.setClientData(user.getName().concat(" ").concat(user.getFathersName())
                 .concat(" ").concat(user.getSurname()));
         return account;
     }
 
-    private String createRandomNumber() {
+    private String createRandomNumber(int limit) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < END_VALUE; i++) {
-            sb.append((int) Math.ceil(Math.random() * 10));
+        Random rand = new Random();
+        for (int i = 0; i < limit; i++) {
+            sb.append(rand.nextInt(10));
         }
         return sb.toString();
     }
 
     private Account findBankFundAccount() {
-        return accountRepository.findByAccountCode(AccountCode.BANK_FUND).get();
+        return accountRepository.findByAccountCode(AccountCode.BANK_FUND)
+                .orElseThrow(() -> new ServiceException(ACCOUNT_NOT_ERROR));
     }
 
     private Account findBankCashAccount() {
-        return accountRepository.findByAccountCode(AccountCode.BANK_CASH).get();
+        return accountRepository.findByAccountCode(AccountCode.BANK_CASH)
+                .orElseThrow(() -> new ServiceException(ACCOUNT_NOT_ERROR));
     }
 }
